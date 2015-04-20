@@ -3,7 +3,7 @@
     package="project.android.fastimageprocessing.test" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="18"
         android:targetSdkVersion="17" />
 
     <instrumentation

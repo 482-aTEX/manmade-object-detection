@@ -1,30 +1,22 @@
 package com.csce482.atex.testlibspeed;
 
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Point;
-import android.graphics.PointF;
-import android.opengl.GLES31;
+import android.hardware.Camera.Size;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 import project.android.imageprocessing.FastImageProcessingPipeline;
 import project.android.imageprocessing.FastImageProcessingView;
 import project.android.imageprocessing.filter.BasicFilter;
-import project.android.imageprocessing.filter.colour.*;
-import project.android.imageprocessing.filter.effect.*;
-import project.android.imageprocessing.filter.processing.*;
+import project.android.imageprocessing.filter.colour.GreyScaleFilter;
+import project.android.imageprocessing.filter.processing.ConvolutionFilter;
+import project.android.imageprocessing.filter.processing.EnergyFilter;
+import project.android.imageprocessing.filter.processing.MultiConvolutionFilter;
 import project.android.imageprocessing.input.CameraPreviewInput;
 import project.android.imageprocessing.input.GLTextureOutputRenderer;
 import project.android.imageprocessing.output.ScreenEndpoint;
@@ -44,6 +36,7 @@ public class MainActivity extends Activity {
     private ConvolutionFilter cFilter2;
     private GreyScaleFilter gFilter;
     private MultiConvolutionFilter mcFilter;
+    private EnergyFilter eFilter;
 
     private void addFilter(BasicFilter filter) {
         filters.add(filter);
@@ -79,10 +72,22 @@ public class MainActivity extends Activity {
             });
         }
         kernels.position(0);
-        mcFilter = new MultiConvolutionFilter(kernels, 13, 13, numKernels);
+
+        //===========================Set up Energy Filter===============================
+        Size previewSize = ((CameraPreviewInput)input).getPreviewSize();
+
+        Log.d("IMAGE SIZE", "" + previewSize.width + " " + previewSize.height);
+
+        int windowsWide = 3;
+        int windowsHigh = 3;
+        eFilter = new EnergyFilter(previewSize.width, previewSize.height, previewSize.width/windowsWide, previewSize.height/windowsHigh);
+        //==============================================================================
+
+        mcFilter = new MultiConvolutionFilter(kernels, 13, 13, numKernels, previewSize.width, previewSize.height);
         screen = new ScreenEndpoint(pipeline);
         input.addTarget(gFilter);
         gFilter.addTarget(mcFilter);
+        //mcFilter.addTarget(eFilter);
         mcFilter.addTarget(screen);
         pipeline.addRootRenderer(input);
         pipeline.startRendering();

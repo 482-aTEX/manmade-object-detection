@@ -11,7 +11,6 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import project.android.imageprocessing.filter.MultiPixelRenderer;
-import project.android.imageprocessing.filter.TwoPassMultiPixelFilter;
 
 /**
  * A basic convolution filter implementation of the MultiPixelRenderer.
@@ -19,7 +18,7 @@ import project.android.imageprocessing.filter.TwoPassMultiPixelFilter;
  * the filter will favour the bottom right.
  * @author Chris Batt
  */
-public class MultiConvolutionFilter extends TwoPassMultiPixelFilter {
+public class MultiConvolutionFilter extends MultiPixelRenderer {
     protected static final String UNIFORM_FILTER = "kern";
     private FloatBuffer filterBuffer;
     private int filterSize;

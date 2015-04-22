@@ -20,8 +20,6 @@ import java.util.ArrayList;
 public class MultiConvolutionFilter extends MultiPixelRenderer {
     protected static final String UNIFORM_FILTER = "kern";
     private FloatBuffer filterBuffer;
-    private ArrayList<Integer> filterHandles;
-    private ArrayList<FloatBuffer> filters;
     private int filterSize;
     private int numFilters;
     private int width, height;
@@ -38,7 +36,6 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
         super();
         this.filterBuffer = filters;
         filterSize = filterWidth*filterHeight;
-        filterHandles = new ArrayList<>();
         numFilters = n;
         this.width = filterWidth;
         this.height = filterHeight;
@@ -77,11 +74,11 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
                     "uniform float "+UNIFORM_TEXELHEIGHT+";\n" +
                     "out vec4 outcolor;\n";
 
-        program +=  "const int ARRAY_SIZE = "+(169*numFilters)+";\n" +
-                    "uniform kern_array {\n" +
-                    "    float kern[ARRAY_SIZE];\n" +
-                    "};\n";
-
+//        program +=  "const int ARRAY_SIZE = "+(169*numFilters)+";\n" +
+//                    "uniform kern_array {\n" +
+//                    "    float kern[ARRAY_SIZE];\n" +
+//                    "};\n";
+//
         program +=  "in vec2 "+VARYING_TEXCOORD+";\n";
 
         program +=  "float gray_vals["+getFilterSize()+"];\n";
@@ -102,14 +99,14 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
         grayindex = 0;
         for(int j = 0; j < height; j++) {
         for(int k = 0; k < width; k++) {
-        program +=  "   product += gray_vals["+grayindex+"] * kern["+kernindex+"];\n";
+        program +=  "   product += (gray_vals["+grayindex+"] * " + filterBuffer.get(kernindex) + ");\n";//kern["+kernindex+"];\n";
         grayindex++;
         kernindex++;
         }
         }
         }
 
-        program +=  "   outcolor = vec4(product*100.0, product*100.0, product, 1.0);\n";
+        program +=  "   outcolor = vec4(product*100.0, product*100.0, product*100.0, 1.0);\n";
         program +=  "}\n";
         return program;
     }
@@ -117,25 +114,10 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
     @Override
     protected void initShaderHandles() {
         super.initShaderHandles();
-//        filterHandles.clear();
-//        for (int i = 0 ; i < filterBuffer.size() ; ++i ) {
-//            filterHandles.add(GLES31.glGetUniformLocation(programHandle, UNIFORM_FILTER+i));
-//        }
-        IntBuffer bufferObj = IntBuffer.allocate(1);
-        GLES31.glGenBuffers(1, bufferObj);
-        GLES31.glBindBuffer(GLES31.GL_UNIFORM_BUFFER, bufferObj.get(0));
-        GLES31.glBufferData(GLES31.GL_UNIFORM_BUFFER, 169*numFilters*4, filterBuffer, GLES31.GL_DYNAMIC_DRAW);
-        int glubI = GLES31.glGetUniformBlockIndex(programHandle, "kern_array");
-        GLES31.glUniformBlockBinding(programHandle, glubI, 0);
-        GLES31.glBindBufferBase(GLES31.GL_UNIFORM_BUFFER, 0, bufferObj.get(0));
     }
 
     @Override
     protected void passShaderValues() {
         super.passShaderValues();
-        for (int i = 0 ; i < filterHandles.size() ; ++i ) {
-            filters.get(i).position(0);
-            GLES31.glUniform1fv(filterHandles.get(i).intValue(), filterSize, filters.get(i).array(), 0);
-        }
     }
 }

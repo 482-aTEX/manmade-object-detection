@@ -11,6 +11,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import project.android.imageprocessing.filter.MultiPixelRenderer;
+import project.android.imageprocessing.filter.TwoPassMultiPixelFilter;
 
 /**
  * A basic convolution filter implementation of the MultiPixelRenderer.
@@ -18,7 +19,7 @@ import project.android.imageprocessing.filter.MultiPixelRenderer;
  * the filter will favour the bottom right.
  * @author Chris Batt
  */
-public class MultiConvolutionFilter extends MultiPixelRenderer {
+public class MultiConvolutionFilter extends TwoPassMultiPixelFilter {
     protected static final String UNIFORM_FILTER = "kern";
     private FloatBuffer filterBuffer;
     private int filterSize;
@@ -92,23 +93,32 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
         program +=  "   vec2 heightStep = vec2(0.0, "+UNIFORM_TEXELHEIGHT+");\n";
 
         program +=  "   float product = 0.0;\n";
+        program +=  "   float energies[24];\n";
 
+
+        // Get pixel values from texture
         for(int j = 0; j < height; j++) {
         for(int i = 0; i < width; i++) {
         program +=  "   gray_vals["+grayindex+"] = texture("+UNIFORM_TEXTURE0+","+VARYING_TEXCOORD+" + widthStep * " + (i-middleWidth) + ".0 + heightStep * " + (j-middleHeight) + ".0).r;\n";
         grayindex++;
         }}
 
+
+        // convolve each kernel on pixel matrix and store energy values
         for (int i = 0 ; i < numFilters ; i++) {
         grayindex = 0;
         for(int j = 0; j < height; j++) {
         for(int k = 0; k < width; k++) {
-        program +=  "   product += (gray_vals["+grayindex+"] * " + filterBuffer.get(kernindex) + ");\n";//kern["+kernindex+"];\n";
+        program +=  "   energies["+i+"] += (gray_vals["+grayindex+"] * " + filterBuffer.get(kernindex) + ");\n";//kern["+kernindex+"];\n";
         grayindex++;
         kernindex++;
         }
         }
+        program +=  "   energies["+i+"] = energies["+i+"] * energies["+i+"];\n";
         }
+
+        //Calculate SGOED
+
 
         program +=  "   outcolor = vec4(product*100.0, product*100.0, product*100.0, 1.0);\n";
         program +=  "}\n";

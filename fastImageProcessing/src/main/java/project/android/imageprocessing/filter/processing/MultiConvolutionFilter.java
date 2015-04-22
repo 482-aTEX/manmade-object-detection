@@ -4,12 +4,13 @@ package project.android.imageprocessing.filter.processing;
  * Created by cloudburst on 4/19/15.
  */
 
-import project.android.imageprocessing.filter.MultiPixelRenderer;
 import android.opengl.GLES31;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+
+import project.android.imageprocessing.filter.MultiPixelRenderer;
 
 /**
  * A basic convolution filter implementation of the MultiPixelRenderer.
@@ -23,6 +24,7 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
     private int filterSize;
     private int numFilters;
     private int width, height;
+    private int image_width, image_height;
 
     /**
      * @param filters
@@ -32,13 +34,15 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
      * @param filterHeight
      * The height of the convolution filter.
      */
-    public MultiConvolutionFilter(FloatBuffer filters, int filterWidth, int filterHeight, int n) {
+    public MultiConvolutionFilter(FloatBuffer filters, int filterWidth, int filterHeight, int n, int imageWidth, int imageHeight) {
         super();
         this.filterBuffer = filters;
         filterSize = filterWidth*filterHeight;
         numFilters = n;
         this.width = filterWidth;
         this.height = filterHeight;
+        this.image_width = imageWidth;
+        this.image_height = imageHeight;
     }
 
     private int getFilterSize() {
@@ -113,6 +117,20 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
 
     @Override
     protected void initShaderHandles() {
+
+        //==================Create and Bind SSBO====================================
+        /*FloatBuffer energyBuf = FloatBuffer.allocate(24*image_width*image_height);
+        IntBuffer ssbo = IntBuffer.allocate(1);
+
+        GLES31.glGenBuffers(1, ssbo);
+        GLES31.glBindBuffer(GLES31.GL_SHADER_STORAGE_BUFFER, ssbo.get(0));
+        GLES31.glBufferData(GLES31.GL_SHADER_STORAGE_BUFFER, 24*image_width*image_height, energyBuf, GLES31.GL_DYNAMIC_COPY);
+
+        int glsbI = GLES31.glGetUniformBlockIndex(programHandle, "gabor_vals");
+        GLES31.glUniformBlockBinding(programHandle, glsbI, 0);
+        GLES31.glBindBufferBase(GLES31.GL_SHADER_STORAGE_BUFFER, 0, ssbo.get(0));*/
+        //==========================================================================
+
         super.initShaderHandles();
     }
 

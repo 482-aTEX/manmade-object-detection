@@ -118,8 +118,26 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
 
         //Calculate SGOED
 
+        program += "   float orientations[6];\n";
+        for(int i = 0; i < 6; i++) {
+            program += "   orientations[" + i + "] = 0.0;\n";
+            for(int j = 0; j < 4; j++) {
+                program += "   orientations[" + i + "] += energies[" + (i * 4 + j) + "];\n";
+            }
+        }
 
-        program +=  "   outcolor = vec4(product*100.0, product*100.0, product*100.0, 1.0);\n";
+        program += "   float sgoed = 0.0;\n";
+        for(int i = 1; i < 7; i++) {
+            program += "   sgoed += (orientations[" + (i%6) + "] - orientations[" + (i-1) + "]);\n";
+        }
+
+        program +=  "   if(sgoed > 500.0) {\n"+
+                    "      outcolor = vec4(1.0, 1.0, 1.0, 1.0);\n"+
+                    "   }\n"+
+                    "   else {\n"+
+                    "      outcolor = vec4(0.5, 0.5, 0.0, 1.0);\n"+
+                    "   }\n";
+
         program +=  "}\n";
         return program;
     }

@@ -43,6 +43,7 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
         this.height = filterHeight;
         this.image_width = imageWidth;
         this.image_height = imageHeight;
+        setBackgroundColour(1.0f, 0.0f, 0.0f, 1.0f);
     }
 
     private int getFilterSize() {
@@ -122,7 +123,7 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
         for(int i = 0; i < 6; i++) {
             program += "   orientations[" + i + "] = 0.0;\n";
             for(int j = 0; j < 4; j++) {
-                program += "   orientations[" + i + "] += energies[" + (i * 4 + j) + "];\n";
+                program += "   orientations[" + i + "] += energies[" + (i + 4 * j) + "];\n";
             }
         }
 
@@ -131,11 +132,21 @@ public class MultiConvolutionFilter extends MultiPixelRenderer {
             program += "   sgoed += abs(orientations[" + (i%6) + "] - orientations[" + (i-1) + "]);\n";
         }
 
-        program +=  "   if(sgoed > 10.0) {\n"+
-                    "      outcolor = vec4(1.0, 1.0, 1.0, 1.0);\n"+
+        program +=  "      outcolor = vec4(gray_vals[41], gray_vals[41], gray_vals[41], 1.0);\n"+
+                    "   if(sgoed > 0.0025) {\n"+
+                    "      outcolor = vec4(1.0, 0.0, 0.0, 1.0);\n"+
                     "   }\n"+
-                    "   else {\n"+
-                    "      outcolor = vec4(0.3, 0.3, 0.3, 1.0);\n"+
+                    "   else if (sgoed > 0.002){\n"+
+                    "      outcolor = vec4(1.0, 0.549, 0.0, 1.0);\n"+
+                    "   }\n"+
+                    "   else if (sgoed > 0.0015){\n"+
+                    "      outcolor = vec4(1.0, 1.0, 0.0, 1.0);\n"+
+                    "   }\n"+
+                    "   else if (sgoed > 0.0010){\n"+
+                    "      outcolor = vec4(1.0, 1.0, 1.0, 0.8);\n"+
+                    "   }\n"+
+                    "   else if (sgoed > 0.005){\n"+
+                    "      outcolor = vec4(1.0, 1.0, 1.0, 0.9);\n"+
                     "   }\n";
 
         program +=  "}\n";
